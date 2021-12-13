@@ -32,38 +32,63 @@ app.get('/messages',(req,res)=>
 })
 
 app.post('/messages',(req,res)=>
-{   
+{
     var message = new Message(req.body)
-    message.save().then((err)=>
+    message.save()
+    .then(()=>
     {
-        if(err)
+        console.log('saved')
+        return Message.findOne({message:'badword'})
+    })
+    .then( censored =>{
+        if(censored)
         {
-            sendStatus(500)
+            console.log('Censored words found',censored)
+            return Message.deleteOne({_id:censored.id})
         }
-        else
-        {
-
-            Message.findOne({message:'badword'},(err,censored)=>
-            {
-                if(censored)
-                {
-                    console.log('censored words found',censored)
-                    Message.deleteOne({_id: censored.id},(err)=>
-                    {
-                        console.log('removed cesored message');
-                    })
-                }
-            })
-                        io.emit('message',req.body)
-            res.sendStatus(200)
-        }
+        io.emit('message',req.body)
+        res.sendStatus(200)
+    }).catch((err)=>
+    {
+        res.sendStatus(500)
+        return console.error(err)
     })
     
-}).patch((err)=>
-{
-    res.sendStatus(500)
-    return console.error(err)
+
 })
+// app.post('/messages',(req,res)=>
+// {   
+//     var message = new Message(req.body)
+//     message.save().then((err)=>
+//     {
+//         if(err)
+//         {
+//             sendStatus(500)
+//         }
+//         else
+//         {
+
+//             Message.findOne({message:'badword'},(err,censored)=>
+//             {
+//                 if(censored)
+//                 {
+//                     console.log('censored words found',censored)
+//                     Message.deleteOne({_id: censored.id},(err)=>
+//                     {
+//                         console.log('removed cesored message');
+//                     })
+//                 }
+//             })
+//                         io.emit('message',req.body)
+//             res.sendStatus(200)
+//         }
+//     })
+    
+// }).patch((err)=>
+// {
+//     res.sendStatus(500)
+//     return console.error(err)
+// })
 
 io.on('connection',(socket)=>{
 
