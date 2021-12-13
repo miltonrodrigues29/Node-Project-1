@@ -5,6 +5,8 @@ var http = require('http').Server(app)
 var io  = require('socket.io')(http)
 var mongoose = require('mongoose')
 const { sendStatus } = require('express/lib/response')
+const res = require('express/lib/response')
+mongoose.Promise = Promise
 var dbUrl = 'mongodb+srv://milton:AYu4WEzQVHwf9zrP@cluster0.e94j7.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 var Message = mongoose.model('Message',{
     name:String,
@@ -39,7 +41,7 @@ app.get('/messages',(req,res)=>
 app.post('/messages',(req,res)=>
 {   
     var message = new Message(req.body)
-    message.save((err)=>
+    message.save().then((err)=>
     {
         if(err)
         {
@@ -47,11 +49,27 @@ app.post('/messages',(req,res)=>
         }
         else
         {
-            io.emit('message',req.body)
+
+            Message.findOne({message:'badword'},(err,censored)=>
+            {
+                if(censored)
+                {
+                    console.log('censored words found',censored)
+                    Message.deleteOne({_id: censored.id},(err)=>
+                    {
+                        console.log('removed cesored message');
+                    })
+                }
+            })
+                        io.emit('message',req.body)
             res.sendStatus(200)
         }
     })
     
+}).patch((err)=>
+{
+    res.sendStatus(500)
+    return console.error(err)
 })
 
 io.on('connection',(socket)=>{
