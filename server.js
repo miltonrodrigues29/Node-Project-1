@@ -19,15 +19,8 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 const server = 3000
 
-// var messages = [
-//     // {
-//     //     name:'Milton',message:"Hi"
-//     // }
-//     // ,
-//     // {
-//     //     name:'Milton R',message:"Hello"
-//     // }
-// ]
+
+
 
 app.get('/messages',(req,res)=>
 {
